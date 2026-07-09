@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,6 +41,7 @@ type model struct {
 	cursorStop     <-chan struct{}
 	width          int
 	height         int
+	windowReady    bool
 	entries        []entry
 	running        bool
 	mode           string
@@ -102,6 +104,7 @@ func newModel(ctx context.Context, ag *agent.Agent, startup Startup) model {
 	input.FocusedStyle.Placeholder = inputPlaceholderStyle
 	input.FocusedStyle.Text = inputTextStyle
 	input.FocusedStyle.EndOfBuffer = inputFillStyle
+	input.Cursor.SetMode(cursor.CursorHide)
 	input.SetWidth(80)
 	input.SetHeight(1)
 	input.Focus()
@@ -131,7 +134,7 @@ func newModel(ctx context.Context, ag *agent.Agent, startup Startup) model {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(tea.HideCursor, m.input.Focus())
+	return tea.Batch(tea.ShowCursor, m.input.Focus())
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -140,6 +143,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.windowReady = true
 		m.updateInputLayout()
 		if m.renderer != nil {
 			m.renderer, _ = newMarkdownRenderer(max(40, msg.Width-scrollbarWidth-4))
@@ -476,6 +480,9 @@ func (m model) inputStatusGap() string {
 }
 
 func (m model) placeTerminalCursor() tea.Cmd {
+	if !m.windowReady {
+		return nil
+	}
 	row, col := m.inputCursorPosition()
 	stop := m.cursorStop
 	return func() tea.Msg {
@@ -520,11 +527,7 @@ func (m model) renderedInputContentRow() int {
 
 func (m model) emptyInputLine(width int) string {
 	prompt := inputPromptStyle.Render(inputPrompt)
-	cursor, rest := splitFirstRune(inputPlaceholder)
-	if cursor == "" {
-		cursor = " "
-	}
-	content := prompt + inputCursorStyle.Render(cursor) + inputPlaceholderStyle.Render(rest)
+	content := prompt + inputPlaceholderStyle.Render(inputPlaceholder)
 	pad := max(0, width-lipgloss.Width(content))
 	return content + inputFillStyle.Render(strings.Repeat(" ", pad))
 }
@@ -1049,7 +1052,6 @@ var (
 	assistantStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
 	errorStyle            = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
 	inputFillStyle        = lipgloss.NewStyle().Background(lipgloss.Color("236"))
-	inputCursorStyle      = lipgloss.NewStyle().Background(lipgloss.Color("15")).Foreground(lipgloss.Color("236"))
 	inputPromptStyle      = lipgloss.NewStyle().Background(lipgloss.Color("236")).Foreground(lipgloss.Color("252"))
 	inputTextStyle        = lipgloss.NewStyle().Background(lipgloss.Color("236")).Foreground(lipgloss.Color("252"))
 	inputPlaceholderStyle = lipgloss.NewStyle().

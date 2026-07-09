@@ -185,6 +185,18 @@ func TestInputBoxUsesFullWidth(t *testing.T) {
 	}
 }
 
+func TestInputBoxDoesNotRenderSyntheticCursorBlock(t *testing.T) {
+	m := newModel(context.Background(), nil, Startup{})
+	m.width = 80
+	m.input.SetValue("分析yixia")
+	m.updateInputLayout()
+
+	got := m.inputBox()
+	if strings.Contains(got, "\x1b[7m") {
+		t.Fatalf("input should not render a reverse-video synthetic cursor: %q", got)
+	}
+}
+
 func TestViewKeepsInputInsideTerminalFrame(t *testing.T) {
 	m := newModel(context.Background(), nil, Startup{Model: "deepseek-v4-pro"})
 	m.width = 80
