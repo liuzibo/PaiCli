@@ -75,11 +75,13 @@ func (a *Agent) Run(ctx context.Context, input string) (string, error) {
 }
 
 func (a *Agent) RunCommand(ctx context.Context, input string) (string, error) {
+	// 运行
 	return a.RunCommandWithObserver(ctx, input, nil)
 }
 
 func (a *Agent) RunCommandWithObserver(ctx context.Context, input string, observe Observer) (string, error) {
 	mode, prompt := ParseRunCommand(input)
+	//运行
 	return a.RunModeWithObserver(ctx, mode, prompt, observe)
 }
 
@@ -90,6 +92,7 @@ func (a *Agent) RunMode(ctx context.Context, mode RunMode, input string) (string
 func (a *Agent) RunModeWithObserver(ctx context.Context, mode RunMode, input string, observe Observer) (string, error) {
 	switch NormalizeRunMode(mode) {
 	case "", RunModeReact:
+		// 进入主循环
 		return a.RunWithObserver(ctx, input, observe)
 	case RunModePlan:
 		return a.PlanAndExecuteWithObserver(ctx, input, observe)

@@ -237,4 +237,7 @@ func loadDotEnv(path string) {
 			_ = os.Setenv(key, value)
 		}
 	}
+	if err := sc.Err(); err != nil {
+		return
+	}
 }

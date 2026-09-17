@@ -15,6 +15,7 @@ import (
 	"github.com/itwanger/paicli-go/internal/config"
 )
 
+// 实现Client接口
 type OpenAICompatibleClient struct {
 	provider string
 	cfg      config.ProviderConfig
@@ -104,6 +105,8 @@ func (c *OpenAICompatibleClient) ChatStream(ctx context.Context, messages []Mess
 	scanner.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+		fmt.Println(line)
+		// 异常返回
 		if line == "" || strings.HasPrefix(line, ":") || !strings.HasPrefix(line, "data:") {
 			continue
 		}

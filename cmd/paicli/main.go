@@ -27,9 +27,11 @@ import (
 )
 
 func main() {
+	// 处理关闭信号
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	// 执行根命令
 	if err := rootCommand().ExecuteContext(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -57,6 +59,7 @@ func rootCommand() *cobra.Command {
 			}
 			defer env.Close()
 			if once != "" {
+				// 运行一次性命令
 				answer, err := runAgentInput(cmd.Context(), env.Agent, mode, once)
 				if err != nil {
 					return err
@@ -64,6 +67,7 @@ func rootCommand() *cobra.Command {
 				fmt.Println(answer)
 				return nil
 			}
+			// 运行plain命令
 			if plain {
 				return runPlain(cmd.Context(), env, mode)
 			}
@@ -80,6 +84,7 @@ func rootCommand() *cobra.Command {
 			})
 		},
 	}
+	// 添加命令行参数
 	cmd.Flags().StringVar(&once, "once", "", "run one prompt and exit")
 	cmd.Flags().BoolVar(&plain, "plain", false, "use plain stdin/stdout REPL")
 	cmd.Flags().StringVar(&cwd, "cwd", "", "workspace directory")
@@ -164,6 +169,9 @@ func runPlain(ctx context.Context, env *environment, mode string) error {
 			continue
 		}
 		fmt.Println(answer)
+		if err := scanner.Err(); err != nil {
+			return err
+		}
 	}
 }
 
@@ -171,6 +179,7 @@ func runAgentInput(ctx context.Context, ag *agent.Agent, mode string, input stri
 	if strings.TrimSpace(mode) != "" {
 		return ag.RunMode(ctx, agent.RunMode(mode), input)
 	}
+	// 入口
 	return ag.RunCommand(ctx, input)
 }
 
