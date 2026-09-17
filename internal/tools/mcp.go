@@ -73,19 +73,19 @@ func (r *Registry) loadMCPConfig() map[string]mcpServerConfig {
 			merged[name] = server
 		}
 	}
-	if os.Getenv("STEP_API_KEY") != "" {
-		if _, ok := merged["step_search"]; !ok {
-			merged["step_search"] = mcpServerConfig{
-				URL: "https://api.stepfun.com/step_plan/v1/mcp/web_search/mcp",
-				Headers: map[string]string{
-					"Authorization": "Bearer ${STEP_API_KEY}",
-				},
-			}
-			server := merged["step_search"]
-			expandMCPVars(&server, r.root)
-			merged["step_search"] = server
-		}
-	}
+	//if os.Getenv("STEP_API_KEY") != "" {
+	//	if _, ok := merged["step_search"]; !ok {
+	//		merged["step_search"] = mcpServerConfig{
+	//			URL: "https://api.stepfun.com/step_plan/v1/mcp/web_search/mcp",
+	//			Headers: map[string]string{
+	//				"Authorization": "Bearer ${STEP_API_KEY}",
+	//			},
+	//		}
+	//		server := merged["step_search"]
+	//		expandMCPVars(&server, r.root)
+	//		merged["step_search"] = server
+	//	}
+	//}
 	return merged
 }
 
